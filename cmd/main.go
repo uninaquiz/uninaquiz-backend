@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -13,15 +14,15 @@ import (
 )
 
 func main() {
-	server := factories.MakeServer()
+	container := factories.NewContainer()
 
 	httpServer := &http.Server{
 		Addr:    ":8080",
-		Handler: server.Engine,
+		Handler: container.Server.Engine,
 	}
 
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("failed to run server: %v\n", err)
 		}
 	}()
