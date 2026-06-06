@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	server := factories.MakeServer()
+	container := factories.NewContainer()
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
@@ -30,7 +31,7 @@ func main() {
 	}
 
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("failed to run server: %v\n", err)
 		}
 	}()
