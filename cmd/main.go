@@ -16,9 +16,18 @@ import (
 func main() {
 	container := factories.NewContainer()
 
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: container.Server.Engine,
+		Addr:              ":" + port,
+		Handler:           server.Engine,
+		ReadTimeout:       10 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	go func() {
