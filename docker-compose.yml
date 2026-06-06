@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: golang-api
+    build: .
+    environment:
+      PORT: 8080
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+  postgresql:
+    container_name: postgresql
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: db_uninaquiz
+    volumes:
+      - .docker/postgresql/data:/var/lib/postgresql/data
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    depends_on:
+      - postgresql
