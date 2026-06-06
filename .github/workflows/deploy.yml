@@ -22,8 +22,10 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Download dependencies
-        run: go mod download
+      - name: Tidy and download dependencies
+        run: |
+          go mod tidy
+          go mod download
 
       - name: Build binary
         run: |
