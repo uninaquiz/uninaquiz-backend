@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/db/migrations/20260606181925_create_quizes_table.sql" value="bd213956-626c-43f6-a0d6-bd2522cba674" />
+  </component>
+</project>
