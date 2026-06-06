@@ -20,7 +20,7 @@ help:
 # Build the Go project
 build:
 	@echo "Building $(BINARY_NAME)..."
-	go build -o bin/$(BINARY_NAME) ./cmd
+	CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/$(BINARY_NAME) ./cmd
 	@echo "Build complete: bin/$(BINARY_NAME)"
 
 # Run the API
