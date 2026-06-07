@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/commands"
-	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/mappers"
 	domainerrors "github.com/EmanuelErnesto/uninaquiz-backend/internal/domain/errors"
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/domain/repositories"
 )
@@ -20,15 +19,16 @@ func NewSaveQuizHistoryUseCase(quizRepository repositories.IQuizRepository) *Sav
 }
 
 func (usc *SaveQuizHistoryUseCase) Run(ctx context.Context, input commands.SaveQuizHistoryCommand, userID string) error {
-	exists, err := usc.quizRepository.ExistsByUserTopicAndDifficulty(ctx, userID, input.Topic, input.Difficulty)
+	quiz, err := usc.quizRepository.FindByID(ctx, input.ID)
 	if err != nil {
 		return err
 	}
-	if exists {
-		return domainerrors.ErrQuizAlreadyExists
+	if quiz == nil {
+		return domainerrors.ErrQuizNotFound
+	}
+	if quiz.UserID != userID {
+		return domainerrors.ErrQuizForbidden
 	}
 
-	quiz := mappers.ToQuizEntity(input, userID)
-	_, err = usc.quizRepository.Create(ctx, *quiz)
-	return err
+	return usc.quizRepository.UpdateScore(ctx, input.ID, input.Score)
 }

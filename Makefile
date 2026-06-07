@@ -1,4 +1,4 @@
-.PHONY: build run docker-build docker-push help
+.PHONY: build run docker-build docker-push help api-dev setup-air
 
 # Variables
 BINARY_NAME=uninaquiz-backend
@@ -26,10 +26,13 @@ endif
 help:
 	@echo "Available targets:"
 	@echo "  build              - Build the Go project"
-	@echo "  run                - Run the API server"
+	@echo "  api                - Build and run the API server"
+	@echo "  api-dev            - Run the API with hot reload (development mode)"
 	@echo "  docker-build       - Build Docker image"
 	@echo "  clean              - Remove binary files"
 	@echo "  create-migration   - Create a new database migration (usage: make create-migration add_email_column)"
+	@echo "  migrate-up         - Run up migrations"
+	@echo "  migrate-down       - Run down migrations"
 
 # Build the Go project
 build:
@@ -41,6 +44,21 @@ build:
 api: build
 	@echo "Running API server..."
 	./bin/$(BINARY_NAME)
+
+# Setup air dependency on machine
+setup-air:
+	@if ! command -v air > /dev/null 2>&1; then \
+		echo "air não encontrado. Realizando instalação..."; \
+		go install github.com/air-verse/air@latest; \
+		echo "air instalado com sucesso!"; \
+	else \
+		echo "air já está instalado."; \
+	fi
+
+# Run API with hot reload (development mode)
+api-dev: setup-air
+	@echo "Running API server with hot reload..."
+	air -c .air.toml
 
 # Build Docker image
 docker-build:

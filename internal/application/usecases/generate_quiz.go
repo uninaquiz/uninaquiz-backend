@@ -7,9 +7,11 @@ import (
 
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/commands"
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/dto"
+	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/mappers"
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/services"
 	domainerrors "github.com/EmanuelErnesto/uninaquiz-backend/internal/domain/errors"
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/domain/repositories"
+	"github.com/google/uuid"
 )
 
 type GenerateQuizUseCase struct {
@@ -37,12 +39,26 @@ func (usc *GenerateQuizUseCase) Run(ctx context.Context, input commands.Generate
 		return nil, domainerrors.ErrQuizAlreadyExists
 	}
 
-	questions, err := usc.aiService.GenerateQuiz(ctx, input.Topic, input.Difficulty)
+	aiQuestions, err := usc.aiService.GenerateQuiz(ctx, input.Topic, input.Difficulty)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.GenerateQuizResponse{Questions: questions}, nil
+	quizID := uuid.New().String()
+	quizEntity := mappers.ToGenerateQuizEntity(quizID, userID, input.Topic, input.Difficulty, aiQuestions)
+
+	created, err := usc.quizRepository.Create(ctx, *quizEntity)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.GenerateQuizResponse{
+		ID:         created.ID,
+		Topic:      created.Topic,
+		Difficulty: string(created.Difficulty),
+		Total:      created.Total,
+		Questions:  aiQuestions,
+	}, nil
 }
 
 // Padrões de prompt injection a serem bloqueados
