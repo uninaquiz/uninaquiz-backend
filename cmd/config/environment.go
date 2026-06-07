@@ -8,7 +8,7 @@ type Config struct {
 	DBPassword   string `envconfig:"DB_PASSWORD" default:"root"`
 	DBName       string `envconfig:"DB_NAME" default:"db_uninaquiz"`
 	DBPort       string `envconfig:"DB_PORT" default:"5432"`
-	JWTSecret    string `envconfig:"JWT_SECRET_KEY" default:"secret-key"`
+	JWTSecret    string `envconfig:"JWT_SECRET_KEY" default:"supersecret"`
 	GeminiAPIKey string `envconfig:"GEMINI_API_KEY" default:""`
 }
 

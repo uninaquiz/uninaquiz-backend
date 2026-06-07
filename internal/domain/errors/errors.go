@@ -20,4 +20,7 @@ var (
 
 	// ErrInvalidTopic é retornado quando o tema não passa nas validações de guard rail.
 	ErrInvalidTopic = errors.New("invalid topic: use a legitimate educational subject")
+
+	// ErrAPIQuotaExceeded é retornado quando a API de IA atinge seu limite de quota.
+	ErrAPIQuotaExceeded = errors.New("service quota exceeded, please try again later")
 )

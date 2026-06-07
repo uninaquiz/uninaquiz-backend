@@ -4,15 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/dto"
 	"github.com/EmanuelErnesto/uninaquiz-backend/internal/application/services"
+	domainerrors "github.com/EmanuelErnesto/uninaquiz-backend/internal/domain/errors"
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
-	geminiModel = "gemini-2.0-flash"
+	geminiModel = "gemini-3.5-flash"
 
 	geminiSystemInstruction = `Você é um assistente especializado EXCLUSIVAMENTE em gerar perguntas de quiz educacional.
 Sua ÚNICA função é retornar um array JSON com exatamente 5 perguntas de múltipla escolha.
@@ -64,6 +68,13 @@ Formato de saída obrigatório (array JSON com exatamente 5 objetos):
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
+		if st, ok := status.FromError(err); ok && st.Code() == codes.ResourceExhausted {
+			return nil, domainerrors.ErrAPIQuotaExceeded
+		}
+		if strings.Contains(strings.ToLower(err.Error()), "quota") ||
+			strings.Contains(strings.ToLower(err.Error()), "429") {
+			return nil, domainerrors.ErrAPIQuotaExceeded
+		}
 		return nil, fmt.Errorf("falha ao chamar a API Gemini: %w", err)
 	}
 

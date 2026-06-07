@@ -11,5 +11,6 @@ type IQuizRepository interface {
 	FindAllByUserID(ctx context.Context, userID string) ([]entities.Quiz, error)
 	FindByID(ctx context.Context, id string) (*entities.Quiz, error)
 	ExistsByUserTopicAndDifficulty(ctx context.Context, userID, topic, difficulty string) (bool, error)
+	UpdateScore(ctx context.Context, id string, score int) error
 	Delete(ctx context.Context, id string) error
 }
