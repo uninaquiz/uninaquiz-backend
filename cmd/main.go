@@ -23,7 +23,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.Engine,
+		Handler:           container.Server.Engine,
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		WriteTimeout:      15 * time.Second,
