@@ -27,7 +27,13 @@ func (r *QuizRepository) Create(ctx context.Context, quiz entities.Quiz) (*entit
 
 func (r *QuizRepository) FindAllByUserID(ctx context.Context, userID string) ([]entities.Quiz, error) {
 	var quizModels []models.QuizModel
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).Order("created_at DESC").Find(&quizModels).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Preload("Questions", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position ASC")
+		}).
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Find(&quizModels).Error; err != nil {
 		return nil, err
 	}
 
@@ -40,7 +46,12 @@ func (r *QuizRepository) FindAllByUserID(ctx context.Context, userID string) ([]
 
 func (r *QuizRepository) FindByID(ctx context.Context, id string) (*entities.Quiz, error) {
 	var model models.QuizModel
-	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&model).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Preload("Questions", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position ASC")
+		}).
+		Where("id = ?", id).
+		First(&model).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
@@ -63,4 +74,11 @@ func (r *QuizRepository) ExistsByUserTopicAndDifficulty(ctx context.Context, use
 
 func (r *QuizRepository) Delete(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&models.QuizModel{}).Error
+}
+
+func (r *QuizRepository) UpdateScore(ctx context.Context, id string, score int) error {
+	return r.db.WithContext(ctx).
+		Model(&models.QuizModel{}).
+		Where("id = ?", id).
+		Update("score", score).Error
 }

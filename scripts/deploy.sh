@@ -68,7 +68,7 @@ sudo systemctl restart uninaquiz
 echo "Waiting for startup..."
 sleep 3
 
-HEALTH_URL="http://localhost:${APP_PORT}/api/health"
+HEALTH_URL="http://localhost:${APP_PORT}/health"
 
 for i in {1..10}; do
     if curl -sf "$HEALTH_URL" >/dev/null 2>&1; then

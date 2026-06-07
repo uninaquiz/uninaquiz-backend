@@ -14,3 +14,7 @@ type IGetAllUsersPort interface {
 type IGetQuizHistoryPort interface {
 	Run(ctx context.Context, userID string) ([]dto.QuizHistoryResponse, error)
 }
+
+type IGetQuizPort interface {
+	Run(ctx context.Context, quizID, userID string) (*dto.GetQuizResponse, error)
+}

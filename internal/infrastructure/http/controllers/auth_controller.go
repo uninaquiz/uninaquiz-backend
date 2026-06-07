@@ -79,7 +79,6 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 }
 
 func (ctrl *AuthController) Logout(c *gin.Context) {
-	// JWT é stateless; logout é gerenciado pelo cliente descartando o token
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 

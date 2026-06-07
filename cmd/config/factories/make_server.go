@@ -36,6 +36,7 @@ type Container struct {
 	GenerateQuizUseCase      ports.IGenerateQuizPort
 	SaveQuizHistoryUseCase   ports.ISaveQuizHistoryPort
 	GetQuizHistoryUseCase    ports.IGetQuizHistoryPort
+	GetQuizUseCase           ports.IGetQuizPort
 	DeleteQuizHistoryUseCase ports.IDeleteQuizHistoryPort
 	Server                   *Server
 }
@@ -73,24 +74,31 @@ func NewContainer() *Container {
 	generateQuizUseCase := usecases.NewGenerateQuizUseCase(aiService, quizRepository)
 	saveQuizHistoryUseCase := usecases.NewSaveQuizHistoryUseCase(quizRepository)
 	getQuizHistoryUseCase := usecases.NewGetQuizHistoryUseCase(quizRepository)
+	getQuizUseCase := usecases.NewGetQuizUseCase(quizRepository)
 	deleteQuizHistoryUseCase := usecases.NewDeleteQuizHistoryUseCase(quizRepository)
 
 	engine := gin.Default()
 
+	engine.Use(middleware.CORSMiddleware())
+
 	authMiddleware := middleware.AuthMiddleware(tokenService)
 
+	// Health check at root level
+	rootGroup := engine.Group("")
+	controllers.NewHealthController(rootGroup)
+
 	apiGroup := engine.Group("/api")
-	controllers.NewHealthController(apiGroup)
 	controllers.NewUserController(getAllUsersUseCase, apiGroup)
 
-	authGroup := engine.Group("/auth")
+	authGroup := apiGroup.Group("/auth")
 	controllers.NewAuthController(createUserUseCase, loginUserUseCase, authGroup)
 
-	quizGroup := engine.Group("/quiz")
+	quizGroup := apiGroup.Group("/quiz")
 	controllers.NewQuizController(
 		generateQuizUseCase,
 		saveQuizHistoryUseCase,
 		getQuizHistoryUseCase,
+		getQuizUseCase,
 		deleteQuizHistoryUseCase,
 		authMiddleware,
 		quizGroup,
@@ -110,6 +118,7 @@ func NewContainer() *Container {
 		GenerateQuizUseCase:      generateQuizUseCase,
 		SaveQuizHistoryUseCase:   saveQuizHistoryUseCase,
 		GetQuizHistoryUseCase:    getQuizHistoryUseCase,
+		GetQuizUseCase:           getQuizUseCase,
 		DeleteQuizHistoryUseCase: deleteQuizHistoryUseCase,
 		Server:                   &Server{Engine: engine},
 	}
