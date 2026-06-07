@@ -1,7 +1,6 @@
 package factories
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/EmanuelErnesto/uninaquiz-backend/cmd/config"
@@ -47,12 +46,7 @@ func NewContainer() *Container {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBPort,
-	)
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

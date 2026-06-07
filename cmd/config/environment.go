@@ -3,13 +3,9 @@ package config
 import "github.com/kelseyhightower/envconfig"
 
 type Config struct {
-	DBHost       string `envconfig:"DB_HOST" default:"localhost"`
-	DBUser       string `envconfig:"DB_USER" default:"root"`
-	DBPassword   string `envconfig:"DB_PASSWORD" default:"root"`
-	DBName       string `envconfig:"DB_NAME" default:"db_uninaquiz"`
-	DBPort       string `envconfig:"DB_PORT" default:"5432"`
+	DatabaseURL  string `envconfig:"DATABASE_URL" required:"true"`
 	JWTSecret    string `envconfig:"JWT_SECRET_KEY" default:"supersecret"`
-	GeminiAPIKey string `envconfig:"GEMINI_API_KEY" default:""`
+	GeminiAPIKey string `envconfig:"GEMINI_API_KEY" required:"true"`
 }
 
 func LoadConfig() (Config, error) {
