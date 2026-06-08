@@ -1,4 +1,4 @@
-.PHONY: build run docker-build docker-push help api-dev setup-air
+.PHONY: build run docker-build docker-push help api-dev setup-air test test-unit test-integration test-coverage generate-mocks lint
 
 # Variables
 BINARY_NAME=uninaquiz-backend
@@ -33,6 +33,12 @@ help:
 	@echo "  create-migration   - Create a new database migration (usage: make create-migration add_email_column)"
 	@echo "  migrate-up         - Run up migrations"
 	@echo "  migrate-down       - Run down migrations"
+	@echo "  generate-mocks     - Generate gomock mocks for all interfaces (requires mockgen)"
+	@echo "  lint               - Run linter on entire project (requires golangci-lint)"
+	@echo "  test               - Run all tests (unit + integration)"
+	@echo "  test-unit          - Run only unit tests with race detector and verbose output"
+	@echo "  test-coverage      - Run only unit tests and output HTML coverage report"
+	@echo "  test-integration   - Run only integration/E2E tests (requires Docker)"
 
 # Build the Go project
 build:
@@ -82,6 +88,83 @@ clean:
 	@echo "Cleaning build artifacts..."
 	rm -f bin/$(BINARY_NAME)
 	@echo "Clean complete"
+
+# ─── Linting & Code Quality ───────────────────────────────────────────────────
+
+# Check code formatting and potential bugs
+lint:
+	@echo "Running lint checks..."
+	@echo "  Checking code format with gofmt..."
+	@files=$$(gofmt -l cmd internal tests 2>/dev/null); \
+	if [ -n "$$files" ]; then \
+		echo "ERROR: Code is not properly formatted. Run 'go fmt ./...' to fix."; \
+		echo "$$files"; \
+		exit 1; \
+	fi
+	@echo "  Checking for bugs with go vet..."
+	@go vet ./...
+	@echo "Lint checks complete."
+
+# ─── Testing ──────────────────────────────────────────────────────────────────
+
+# Install mockgen if not available
+setup-mockgen:
+	@if ! command -v mockgen > /dev/null 2>&1; then \
+		echo "mockgen not found. Installing..."; \
+		go install go.uber.org/mock/mockgen@latest; \
+		echo "mockgen installed successfully!"; \
+	else \
+		echo "mockgen already installed."; \
+	fi
+
+# Directories scanned for mockable interfaces.
+# Add a new directory here whenever a new layer with interfaces is created.
+MOCK_SOURCE_DIRS := \
+	internal/domain/repositories \
+	internal/application/services \
+	internal/application/ports
+
+# Generate all gomock mocks by scanning MOCK_SOURCE_DIRS automatically.
+# Any .go file added to those directories will be picked up on the next run.
+generate-mocks: setup-mockgen
+	@echo "Generating mocks..."
+	@mkdir -p internal/mocks
+	@rm -f internal/mocks/mock_*.go
+	@for src in $$(find $(MOCK_SOURCE_DIRS) -name "*.go" -not -name "*_test.go" 2>/dev/null); do \
+		dest="internal/mocks/mock_$$(basename $$src)"; \
+		echo "  mockgen $$src → $$dest"; \
+		mockgen -source=$$src -destination=$$dest -package=mocks || exit 1; \
+	done
+	@echo "Mock generation complete."
+
+# Run all unit tests (no integration, no race, fast)
+test:
+	@echo "Running unit tests..."
+	go test ./internal/...
+	@echo "Unit tests complete."
+	@echo ""
+	@echo "Running integration tests..."
+	go test -tags=integration -v -timeout=300s ./tests/integration/...
+	@echo "Integration tests complete."
+
+# Run unit tests with race detector and verbose output
+test-unit:
+	@echo "Running unit tests (race detector + verbose)..."
+	go test -race -v ./internal/...
+	@echo "Unit tests complete."
+
+# Run unit tests and produce an HTML coverage report
+test-coverage:
+	@echo "Running tests with coverage..."
+	go test -coverprofile=coverage.out ./internal/...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report written to coverage.html"
+
+# Run integration/E2E tests
+test-integration:
+	@echo "Running integration tests (requires Docker for testcontainers)..."
+	go test -tags=integration -v -timeout=300s ./tests/integration/...
+	@echo "Integration tests complete."
 
 
 # Setup goose dependency on machine
