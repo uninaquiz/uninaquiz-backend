@@ -31,12 +31,12 @@ func (usc *GenerateQuizUseCase) Run(ctx context.Context, input commands.Generate
 		return nil, err
 	}
 
-	exists, err := usc.quizRepository.ExistsByUserTopicAndDifficulty(ctx, userID, input.Topic, input.Difficulty)
+	existentQuiz, err := usc.quizRepository.FindByUserTopicAndDifficulty(ctx, userID, input.Topic, input.Difficulty)
 	if err != nil {
 		return nil, err
 	}
-	if exists {
-		return nil, domainerrors.ErrQuizAlreadyExists
+	if existentQuiz != nil {
+		return mappers.ToGenerateQuizResponseFromEntity(existentQuiz), nil
 	}
 
 	aiQuestions, err := usc.aiService.GenerateQuiz(ctx, input.Topic, input.Difficulty)
