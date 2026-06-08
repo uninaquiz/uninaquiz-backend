@@ -40,6 +40,25 @@ func ToGetQuizResponse(quiz entities.Quiz) *dto.GetQuizResponse {
 	}
 }
 
+func ToGenerateQuizResponseFromEntity(quiz *entities.Quiz) *dto.GenerateQuizResponse {
+	questions := make([]dto.QuizQuestion, 0, len(quiz.Questions))
+	for _, q := range quiz.Questions {
+		questions = append(questions, dto.QuizQuestion{
+			Text:         q.Text,
+			Options:      q.Options,
+			CorrectIndex: q.CorrectIndex,
+			Explanation:  q.Explanation,
+		})
+	}
+	return &dto.GenerateQuizResponse{
+		ID:         quiz.ID,
+		Topic:      quiz.Topic,
+		Difficulty: string(quiz.Difficulty),
+		Total:      quiz.Total,
+		Questions:  questions,
+	}
+}
+
 // ToGenerateQuizEntity creates a Quiz entity from AI-generated questions, ready to be persisted.
 func ToGenerateQuizEntity(quizID, userID, topic, difficulty string, aiQuestions []dto.QuizQuestion) *entities.Quiz {
 	questions := make([]entities.QuizQuestion, 0, len(aiQuestions))

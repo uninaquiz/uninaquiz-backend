@@ -60,16 +60,21 @@ func (r *QuizRepository) FindByID(ctx context.Context, id string) (*entities.Qui
 	return model.ToDomain(), nil
 }
 
-func (r *QuizRepository) ExistsByUserTopicAndDifficulty(ctx context.Context, userID, topic, difficulty string) (bool, error) {
-	var count int64
+func (r *QuizRepository) FindByUserTopicAndDifficulty(ctx context.Context, userID, topic, difficulty string) (*entities.Quiz, error) {
+	var model models.QuizModel
 	err := r.db.WithContext(ctx).
-		Model(&models.QuizModel{}).
+		Preload("Questions", func(db *gorm.DB) *gorm.DB {
+			return db.Order("position ASC")
+		}).
 		Where("user_id = ? AND LOWER(topic) = LOWER(?) AND difficulty = ?", userID, topic, difficulty).
-		Count(&count).Error
+		First(&model).Error
 	if err != nil {
-		return false, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
 	}
-	return count > 0, nil
+	return model.ToDomain(), nil
 }
 
 func (r *QuizRepository) Delete(ctx context.Context, id string) error {
